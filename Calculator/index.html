@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Калькулятор сборок — Project Cataclysm Wiki</title>
+    <link rel="icon" href="https://offhoursparadox.github.io/projectcataclysmwiki/favicon-48x48.png" type="image/png" sizes="48x48">
+    <link rel="icon" href="https://offhoursparadox.github.io/projectcataclysmwiki/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="https://offhoursparadox.github.io/projectcataclysmwiki/apple-touch-icon.png" sizes="180x180">
+    <link rel="manifest" href="https://offhoursparadox.github.io/projectcataclysmwiki/site.webmanifest">
+    <meta name="keywords" content="Project Cataclysm калькулятор, Project Cataclysm сборки, Project Cataclysm артефакты билд">
+    <meta name="description" content="Калькулятор сборок артефактов Project Cataclysm. Собери оптимальный билд с учётом брони, контейнера и артефактов.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../shared.css">
+    <link rel="stylesheet" href="calculator.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    <style>
+        /* Дополнительные стили для заголовка и подписи */
+        .calculator-header {
+            text-align: center;
+            padding: 20px 0 10px 0;
+        }
+        .calculator-header h1 {
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 2.8rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin: 0;
+            background: linear-gradient(135deg, #f0e6d3, #c9b89b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px rgba(200, 180, 150, 0.15);
+        }
+        .calculator-header .subtitle {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: rgba(180, 170, 155, 0.7);
+            letter-spacing: 0.03em;
+            margin-top: 2px;
+            font-family: 'Roboto', sans-serif;
+        }
+        .calculator-header .subtitle span {
+            display: inline-block;
+            margin: 0 4px;
+        }
+        .calculator-header .subtitle .divider {
+            opacity: 0.3;
+            margin: 0 6px;
+        }
+        @media (max-width: 640px) {
+            .calculator-header h1 {
+                font-size: 2rem;
+            }
+            .calculator-header .subtitle {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-overlay">
+        <div class="bg-overlay__content"></div>
+    </div>
+
+    <main>
+        <section class="calculator">
+            <div class="container">
+                <!-- ЗАГОЛОВОК И ПОДПИСЬ -->
+                <div class="calculator-header">
+                    <h1>Калькулятор сборок Cataclysm</h1>
+                    <div class="subtitle">
+                        <span>Сделано и поддерживается игроком</span>
+                        <span class="divider">·</span>
+                        <span>любительский формат</span>
+                    </div>
+                </div>
+
+                <div class="calc-carousel" id="calcCarousel">
+                    <div class="calc-layout" id="calcCarouselTrack" role="region" aria-roledescription="carousel">
+                    <!-- Левая колонка: Артефакты + Контейнер + Броня -->
+                    <div class="calc-col calc-col--left" data-calc-slide="0">
+                        <div class="calc-card calc-card--artifacts">
+                            <div class="calc-card__head">
+                                <h2 class="calc-card__title" data-i18n="calc.artifactBuild">Артефакты</h2>
+                                <span class="calc-card__badge" id="artifactCounter">0/0</span>
+                            </div>
+                            <div class="calc-card__body">
+                                <p class="artifact-copy-hint" id="artifactCopyHint" hidden data-i18n="calc.artifactActions.copyHint">Нажмите на слот, чтобы вставить копию артефакта. Повторное нажатие на иконку отключит режим копирования.</p>
+                                <div class="artifact-slots" id="artifactSlots">
+                                    <div class="artifact-slots__placeholder">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                            <circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/>
+                                        </svg>
+                                        <span data-i18n="calc.selectContainerHint">Выберите контейнер для добавления артефактов</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="container-bar">
+                            <button class="container-bar__select" type="button" id="containerPickerBtn">
+                                <div class="container-bar__preview" id="containerPickerPreview"></div>
+                                <div class="container-bar__text">
+                                    <span class="container-bar__name" id="containerPickerName" data-placeholder-i18n="calc.selectContainer" data-i18n="calc.selectContainer">Выберите контейнер...</span>
+                                    <span class="container-bar__hint" id="containerPickerHint" hidden></span>
+                                </div>
+                            </button>
+                            <button class="container-bar__clear" id="clearArtifactsBtn" type="button" style="display:none;" data-title-i18n="calc.clearArtifacts" title="Очистить артефакты">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <select id="containerSelect" style="display:none;">
+                            <option value="">Выберите контейнер...</option>
+                        </select>
+
+                        <div class="calc-card calc-card--armor">
+                            <div class="calc-card__body">
+                                <div class="armor-panel" id="armorPanel">
+                                    <button class="armor-panel__preview" type="button" id="armorPreviewBtn" data-title-i18n="calc.selectArmor" title="Выберите броню...">
+                                        <span class="armor-panel__preview-inner" id="armorPreview">
+                                            <img class="armor-panel__img" src="../images/items/Armors/empty.png" alt="">
+                                            <div class="armor-panel__fallback" hidden>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                                                </svg>
+                                            </div>
+                                        </span>
+                                    </button>
+                                    <div class="armor-panel__body">
+                                        <div class="armor-panel__name" id="armorPanelName" data-placeholder-i18n="calc.selectArmor" data-i18n="calc.selectArmor">Выберите броню...</div>
+                                        <div class="enhancement-level enhancement-level--compact" id="enhancementBlock" style="display:none;">
+                                            <span class="enhancement-level__label" data-i18n="calc.enhancementLevelLabel">Уровень:</span>
+                                            <div class="enhancement-level__stepper" id="enhancementControls">
+                                                <button type="button" class="enhancement-level__step" id="enhancementDecBtn" data-title-i18n="calc.enhancementDecrease" title="Уменьшить" aria-label="Уменьшить уровень">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                        <line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                </button>
+                                                <input type="number" class="enhancement-level__input" id="enhancementValue" min="0" max="15" value="0" inputmode="numeric" aria-label="Уровень заточки">
+                                                <button type="button" class="enhancement-level__step" id="enhancementIncBtn" data-title-i18n="calc.enhancementIncrease" title="Увеличить" aria-label="Увеличить уровень">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                                        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="enhancement-level__step enhancement-level__step--quick" id="enhancementMaxBtn" data-title-i18n="calc.enhancementSetMax" title="Установить 15 уровень" aria-label="Установить 15 уровень">15</button>
+                                            </div>
+                                            <input type="range" class="enhancement-slider enhancement-slider--hidden" id="enhancementSlider" min="0" max="15" value="0" step="1" tabindex="-1" aria-hidden="true">
+                                        </div>
+                                        <div class="armor-panel__actions" id="armorPanelActionsEmpty">
+                                            <button class="armor-panel__btn armor-panel__btn--select" type="button" id="armorPickerBtn">
+                                                <span data-i18n="calc.selectArmor">Выберите броню...</span>
+                                            </button>
+                                        </div>
+                                        <div class="armor-panel__actions armor-panel__actions--selected" id="armorPanelActionsSelected" hidden>
+                                            <button class="armor-panel__btn armor-panel__btn--replace" type="button" id="armorReplaceBtn">
+                                                <span class="armor-panel__btn-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                                                        <path d="M3 3v5h5"/>
+                                                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                                                        <path d="M21 21v-5h-5"/>
+                                                    </svg>
+                                                </span>
+                                                <span data-i18n="calc.artifactActions.replace">Заменить</span>
+                                            </button>
+                                            <button class="armor-panel__btn armor-panel__btn--delete" type="button" id="armorClearBtn">
+                                                <span class="armor-panel__btn-icon" aria-hidden="true">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                                        <line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>
+                                                    </svg>
+                                                </span>
+                                                <span data-i18n="calc.artifactActions.delete">Удалить</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <select id="armorSelect" style="display:none;">
+                                    <option value="">Выберите броню...</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Центральная колонка: Артефакт -->
+                    <div class="calc-col calc-col--center" data-calc-slide="1">
+                        <div class="calc-card calc-card--artifact-detail">
+                            <div class="calc-card__head calc-card__head--mobile-only">
+                                <h2 class="calc-card__title" data-i18n="calc.artifactDetail.title">Артефакт</h2>
+                            </div>
+                            <div class="calc-card__body calc-card__body--artifact-detail" id="artifactDetailPanel">
+                                <div class="artifact-detail__placeholder">
+                                    <span data-i18n="calc.artifactDetail.selectHint">Выберите артефакт для просмотра характеристик</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Правая колонка: Итоговые характеристики -->
+                    <div class="calc-col calc-col--right" data-calc-slide="2">
+                        <div class="stats-panel" id="statsPanel">
+                            <div class="stats-panel__head">
+                                <h2 class="stats-panel__title" data-i18n="calc.totalStats">Итоговые характеристики</h2>
+                            </div>
+                            <div class="stats-panel__body">
+                                <div class="stats-panel__warnings" id="warningsContainer"></div>
+
+                                <div class="stats-panel__hero">
+                                    <div class="hero-stat hero-stat--primary">
+                                        <span class="hero-stat__label" data-i18n="calc.effectiveBulletResistance">Приведённая пулестойкость</span>
+                                        <div class="hero-stat__row">
+                                            <span class="hero-stat__value" id="effectiveBulletResistance">0</span>
+                                            <span class="hero-stat__sub">(<span id="bulletResistancePercent">0.00%</span>)</span>
+                                        </div>
+                                        <div class="hero-stat__bar">
+                                            <div class="hero-stat__bar-fill hero-stat__bar-fill--low" id="bulletResistanceBar" style="width:0%"></div>
+                                        </div>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <span class="hero-stat__label" data-i18n="calc.stat.regeneration">Регенерация</span>
+                                        <span class="hero-stat__value hero-stat__value--sm" data-hero-stat="regeneration">0%/сек</span>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <span class="hero-stat__label" data-i18n="calc.stat.bleeding">Кровотечение</span>
+                                        <span class="hero-stat__value hero-stat__value--sm" data-hero-stat="bleeding">0/сек</span>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <span class="hero-stat__label" data-i18n="calc.stat.radiation">Радиация</span>
+                                        <span class="hero-stat__value hero-stat__value--sm" data-hero-stat="radiation">0 мЗв/сек</span>
+                                    </div>
+                                    <div class="hero-stat">
+                                        <span class="hero-stat__label" data-i18n="calc.stat.saturation">Насыщение</span>
+                                        <span class="hero-stat__value hero-stat__value--sm" data-hero-stat="saturation">0%/сек</span>
+                                    </div>
+                                </div>
+
+                                <div class="stats-panel__divider"></div>
+
+                                <div class="stats-panel__list" id="statsList">
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.impactResistance">Гашение удара</span><span class="stats-panel__value" data-stat="impactResistance">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.tearProtection">Защита от разрывов</span><span class="stats-panel__value" data-stat="tearProtection">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.cold">Холод</span><span class="stats-panel__value" data-stat="cold">0/сек</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.radiationProtection">Защита от радиации</span><span class="stats-panel__value" data-stat="radiationProtection">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.bioProtection">Защита от биозаражения</span><span class="stats-panel__value" data-stat="bioProtection">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.thermalProtection">Защита от температуры</span><span class="stats-panel__value" data-stat="thermalProtection">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.psiProtection">Защита от пси-излучения</span><span class="stats-panel__value" data-stat="psiProtection">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.frostProtection">Защита от обморожения</span><span class="stats-panel__value" data-stat="frostProtection">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.heatResistance">Термозащита</span><span class="stats-panel__value" data-stat="heatResistance">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.chemResistance">Химзащита</span><span class="stats-panel__value" data-stat="chemResistance">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.electroResistance">Электрозащита</span><span class="stats-panel__value" data-stat="electroResistance">0</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.maxStamina">Макс. выносливость</span><span class="stats-panel__value" data-stat="maxStamina">0%</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.staminaRegen">Восстановление сил</span><span class="stats-panel__value" data-stat="staminaRegen">0%/сек</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.moveSpeed">Скорость передвижения</span><span class="stats-panel__value" data-stat="moveSpeed">0%</span></div>
+                                    <div class="stats-panel__row"><span class="stats-panel__name" data-i18n="calc.stat.maxWeight">Макс. вес</span><span class="stats-panel__value" data-stat="maxWeight">0 кг</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+                    <nav class="calc-carousel__nav" id="calcCarouselNav" aria-label="Разделы калькулятора" data-aria-label-i18n="calc.mobileCarousel.ariaLabel">
+                        <button type="button" class="calc-carousel__tab is-active" data-slide="0" aria-selected="true">
+                            <span data-i18n="calc.mobileSlide.build">Сборка</span>
+                        </button>
+                        <button type="button" class="calc-carousel__tab" data-slide="1" aria-selected="false">
+                            <span data-i18n="calc.artifactDetail.title">Артефакт</span>
+                        </button>
+                        <button type="button" class="calc-carousel__tab" data-slide="2" aria-selected="false">
+                            <span data-i18n="calc.mobileSlide.totals">Итоги</span>
+                        </button>
+                    </nav>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Подтверждение очистки артефактов -->
+    <div class="confirm-dialog" id="clearArtifactsConfirm">
+        <div class="confirm-dialog__backdrop"></div>
+        <div class="confirm-dialog__box">
+            <div class="confirm-dialog__icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+            </div>
+            <h4 class="confirm-dialog__title" data-i18n="calc.clearArtifacts.title">Очистить артефакты?</h4>
+            <p class="confirm-dialog__text" data-i18n="calc.clearArtifacts.message">Все артефакты в слотах контейнера будут удалены. Контейнер останется выбранным.</p>
+            <div class="confirm-dialog__actions">
+                <button class="confirm-dialog__btn confirm-dialog__btn--cancel" id="clearArtifactsCancel" type="button" data-i18n="calc.clearArtifacts.cancel">Отмена</button>
+                <button class="confirm-dialog__btn confirm-dialog__btn--confirm" id="clearArtifactsConfirmBtn" type="button" data-i18n="calc.clearArtifacts.confirm">Очистить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора контейнера -->
+    <div class="modal modal--container" id="containerModal">
+        <div class="modal__backdrop"></div>
+        <div class="modal__container modal__container--container">
+            <div class="modal__header">
+                <div class="modal__header-content">
+                    <h3 class="modal__title">
+                        <span data-i18n="calc.containerModal.title">Выбор контейнера</span>
+                    </h3>
+                </div>
+                <button class="modal__close" id="containerModalClose" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal__toolbar">
+                <div class="modal__search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="containerModalSearch" data-placeholder-i18n="calc.searchContainer" placeholder="Поиск контейнера...">
+                    <button class="modal__search-clear" id="containerSearchClear" style="display:none;" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal__body modal__body--containers">
+                <div class="container-modal__layout">
+                    <div class="containers-grid" id="containerModalList"></div>
+                    <div class="container-detail" id="containerModalDetail">
+                        <div class="container-detail__placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            </svg>
+                            <span data-i18n="calc.containerModal.selectHint">Выберите контейнер для просмотра характеристик</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора брони -->
+    <div class="modal modal--armor" id="armorModal">
+        <div class="modal__backdrop"></div>
+        <div class="modal__container modal__container--armor">
+            <div class="modal__header">
+                <div class="modal__header-content">
+                    <h3 class="modal__title">
+                        <span data-i18n="calc.armorModal.title">Выбор брони</span>
+                    </h3>
+                </div>
+                <button class="modal__close" id="armorModalClose" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal__toolbar">
+                <div class="modal__search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="armorModalSearch" data-placeholder-i18n="calc.searchArmor" placeholder="Поиск брони...">
+                    <button class="modal__search-clear" id="armorSearchClear" style="display:none;" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal__body modal__body--armor">
+                <div class="armor-modal__layout">
+                    <div class="armors-grid" id="armorModalList"></div>
+                    <div class="armor-detail" id="armorModalDetail">
+                        <div class="armor-detail__placeholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            </svg>
+                            <span data-i18n="calc.armorModal.selectHint">Выберите броню для просмотра характеристик</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно выбора артефакта -->
+    <div class="modal modal--artifact" id="artifactModal">
+        <div class="modal__backdrop"></div>
+        <div class="modal__container modal__container--artifact">
+            <div class="modal__header">
+                <div class="modal__header-content">
+                    <h3 class="modal__title">
+                        <span data-i18n="calc.modal.title">Выбор артефакта</span>
+                    </h3>
+                </div>
+                <button class="modal__close" id="modalClose">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal__toolbar">
+                <div class="modal__search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+                    </svg>
+                    <input type="text" id="artifactSearch" data-placeholder-i18n="calc.modal.searchPlaceholder" placeholder="Название артефакта...">
+                    <button class="modal__search-clear" id="searchClear" style="display:none;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="modal__body modal__body--artifacts">
+                <div class="artifact-modal__layout">
+                    <div class="artifacts-grid" id="artifactList"></div>
+                    <div class="artifact-modal-detail" id="artifactModalDetail">
+                        <div class="artifact-modal-detail__placeholder">
+                            <span data-i18n="calc.artifactModal.selectHint">Выберите артефакт для просмотра характеристик</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="scroll-top" id="scrollTop" aria-label="Вверх">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+    </button>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute;left:-9999px;top:-9999px;overflow:hidden">
+        <symbol id="rf-icon-copy" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a3 3 0 006 0M9 5a3 3 0 116 0"/>
+        </symbol>
+        <symbol id="rf-icon-check" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M5 13l4 4L19 7"/>
+        </symbol>
+    </svg>
+
+    <script src="../data/data.js"></script>
+    <script src="../i18n.js"></script>
+    <script src="../shared.js"></script>
+    <script src="calculator.js"></script>
+</body>
+</html>
