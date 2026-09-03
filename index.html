@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Любительский сайт: Калькуляторы Project Cataclysm</title>
+    <meta name="description" content="Любительские калькуляторы для Project Cataclysm: подбор сборок артефактов и расчет урона (TTK).">
+    
+    <!-- Подключаем оригинальные стили -->
+    <link rel="stylesheet" href="shared.css">
+    <link rel="stylesheet" href="main.css">
+    
+    <!-- Шрифты из оригинального дизайна -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Roboto:wght@400;500;600&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+        /* Дополнительные стили для главной страницы */
+        .landing-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 60px;
+            text-align: center;
+        }
+
+        .landing-logo { margin-bottom: 2rem; transform: scale(1.2); }
+
+        .landing-tagline {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1.5rem;
+            color: var(--color-text-muted, #8a8a8a);
+            margin-bottom: 3rem;
+            letter-spacing: 1px;
+            max-width: 600px;
+            line-height: 1.4;
+        }
+
+        /* Контейнер для кнопок, чтобы они стояли рядом */
+        .buttons-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        /* Общий стиль для обеих кнопок */
+        .main-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px 40px;
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.9), rgba(10, 10, 10, 0.95));
+            border: 1px solid rgba(212, 160, 64, 0.3);
+            border-radius: 12px;
+            text-decoration: none;
+            color: #e0e0e0;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+            font-size: 1.4rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+            min-width: 280px;
+        }
+
+        .main-action-btn:hover {
+            border-color: rgba(212, 160, 64, 0.8);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 160, 64, 0.15);
+        }
+
+        .main-action-btn svg {
+            width: 32px;
+            height: 32px;
+            stroke: currentColor;
+            flex-shrink: 0;
+        }
+
+        /* Адаптив для мобильных */
+        @media (max-width: 768px) {
+            .landing-tagline { font-size: 1.2rem; padding: 0 20px; }
+            .buttons-container { flex-direction: column; align-items: center; gap: 15px; }
+            .main-action-btn { padding: 18px 30px; font-size: 1.2rem; width: 90%; max-width: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Фоновые эффекты из оригинала -->
+    <div class="bg-overlay">
+        <div class="bg-overlay__content"></div>
+    </div>
+
+    <!-- Упрощенный хедер -->
+    <header class="header" id="mainHeader">
+        <div class="header__container" style="justify-content: center;">
+            <div class="header__logo" style="cursor: default;">
+                <div class="logo-mark">
+                    <svg class="logo-mark__icon" viewBox="0 0 36 36" fill="none">
+                        <path d="M18 2L3 10v16l15 8 15-8V10L18 2z" stroke="currentColor" stroke-width="1.5"/>
+                        <circle cx="18" cy="18" r="3" fill="currentColor" opacity="0.8"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-text__cataclysm">CATACLYSM</span>
+                    <span class="logo-text__wiki">TOOLS</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент по центру -->
+    <main class="landing-wrapper">
+        
+        <!-- Логотип -->
+        <div class="hero-logo landing-logo">
+            <div class="hero-logo__hazard">
+                <svg viewBox="0 0 120 120" fill="none" class="hero-logo__hexagon" style="width: 100px; height: 100px;">
+                    <defs>
+                        <linearGradient id="hero-hex-grad" x1="10" y1="10" x2="110" y2="110">
+                            <stop offset="0%" stop-color="#d4a040"/>
+                            <stop offset="100%" stop-color="#6a4c1a"/>
+                        </linearGradient>
+                    </defs>
+                    <path d="M60 5L110 32.5v55L60 115 10 87.5v-55L60 5z" stroke="url(#hero-hex-grad)" stroke-width="1.5" fill="none"/>
+                    <circle cx="60" cy="60" r="8" fill="url(#hero-hex-grad)" opacity="0.8"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Надпись про любительский сайт -->
+        <p class="landing-tagline">
+            Любительский сайт создания сборок и расчета урона
+        </p>
+
+        <!-- Две кнопки в ряд -->
+        <div class="buttons-container">
+            
+            <!-- Кнопка 1: Калькулятор сборок -->
+            <a href="Calculator/calculator.html" class="main-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                    <line x1="8" y1="6" x2="16" y2="6"></line>
+                    <line x1="16" y1="14" x2="16" y2="14.01"></line>
+                    <line x1="12" y1="14" x2="12" y2="14.01"></line>
+                    <line x1="8" y1="14" x2="8" y2="14.01"></line>
+                    <line x1="16" y1="18" x2="16" y2="18.01"></line>
+                    <line x1="12" y1="18" x2="12" y2="18.01"></line>
+                    <line x1="8" y1="18" x2="8" y2="18.01"></line>
+                </svg>
+                <span>Калькулятор сборок</span>
+            </a>
+
+            <!-- Кнопка 2: Калькулятор ТТК -->
+            <a href="TTK/ttk.html" class="main-action-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 4v4M12 16v4M4 12h4M16 12h4"></path>
+                </svg>
+                <span>Калькулятор ТТК</span>
+            </a>
+
+        </div>
+
+    </main>
+
+    <footer class="footer" style="position: absolute; bottom: 0; width: 100%; border-top: none; background: transparent;">
+        <div class="container">
+            <div class="footer__content" style="justify-content: center;">
+                <div class="footer__copy" style="opacity: 0.5; font-size: 0.8rem;">© 2026 Amateur Tools. Not official.</div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Скрипты оставляем для корректной работы фона и шрифтов -->
+    <script src="i18n.js"></script>
+    <script src="shared.js"></script>
+</body>
+</html>
